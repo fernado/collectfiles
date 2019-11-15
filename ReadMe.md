@@ -15,7 +15,7 @@ java -jar collectfiles.jar
 需要拷贝的文件集(Required)
 > source-file=./sourcefiles
 
-sourcefiles 文件格式如下
+sourcefiles 文件svn 提交的源码手机及对应的格式如下
 ```shell script
 src/com/mp/QPaymentRefund/HttpPostService.java
 src/com/mp/QPaymentRefund/LIBRefundTran.java
