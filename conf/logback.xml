@@ -8,16 +8,10 @@
     <property name="app.name" value="collectfiles"/>
     <!--ConsoleAppender 用于在屏幕上输出日志-->
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
-        <!--定义了一个过滤器,在LEVEL之下的日志输出不会被打印出来-->
-        <!--这里定义了DEBUG，也就是控制台不会输出比ERROR级别小的日志-->
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>INFO</level>
-        </filter>
         <withJansi>true</withJansi>
         <!-- encoder 默认配置为PatternLayoutEncoder -->
         <!--定义控制台输出格式-->
         <encoder>
-<!--            <pattern>%d [%thread] %-5level %logger{36} [%file : %line] - %msg%n</pattern>-->
             <pattern>${CONSOLE_LOG_PATTERN}</pattern>
             <charset>GBK</charset>
         </encoder>
@@ -40,7 +34,7 @@
         </rollingPolicy>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
             <!--每个日志文件最大100MB-->
-            <maxFileSize>5MB</maxFileSize>
+            <maxFileSize>1MB</maxFileSize>
         </triggeringPolicy>
         <!--定义输出格式-->
         <encoder>

@@ -15,4 +15,6 @@ public class Config {
 
     private String originalJarFolder;
     private String originalJarFilename;
+
+    private boolean copyTempJar2TargetFolder;
 }

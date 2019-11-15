@@ -11,8 +11,26 @@ import java.util.zip.*;
 @Slf4j
 public class FileUtil {
 
+    public static final int BUFFER = 8192;
+
+    public static boolean clearFolder(File file) {
+        return FileUtil.delFile(file);
+    }
+
+    public static void createFileIfNotExist(File file) {
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
+
+    public static void deleteFileIfExist(String file) {
+        File fTempJarFile = new File(file);
+        if (fTempJarFile.exists()) fTempJarFile.delete();
+    }
+
     /**
      * 拷贝文件
+     *
      * @param srcfile
      * @param targetfile
      */
@@ -29,12 +47,13 @@ public class FileUtil {
             bos.flush();
             log.debug("copy file from " + srcfile + " to " + targetfile);
         } catch (Exception e) {
-            log.warn("FAILUED when coping file from " + srcfile  + " to " + targetfile);
+            log.warn("FAILUED when coping file from " + srcfile + " to " + targetfile);
         }
     }
 
     /**
      * 拷贝文件
+     *
      * @param srcfile
      * @param targetfile
      */
@@ -51,7 +70,7 @@ public class FileUtil {
             bos.flush();
             log.debug("copy file from " + srcfile + " to " + targetfile);
         } catch (Exception e) {
-            log.warn("FAILUED when coping file from " + srcfile  + " to " + targetfile);
+            log.warn("FAILUED when coping file from " + srcfile + " to " + targetfile);
         }
     }
 
@@ -73,6 +92,7 @@ public class FileUtil {
 
     /**
      * 通过文件创建父级目录
+     *
      * @param targetfile
      */
     public static void createParentFolders(String targetfile) {
@@ -84,6 +104,7 @@ public class FileUtil {
 
     /**
      * 通过文件创建父级目录
+     *
      * @param targetfile
      */
     public static void createParentFolders(File targetfile) {
@@ -130,80 +151,95 @@ public class FileUtil {
         return lines;
     }
 
-    public static void zip(String inputFile, String outputFile, CompressType type) {
-        zip(new File(inputFile), new File(outputFile), type);
-    }
-
-    /**
-     * 初始化压缩包信息并开始进行压缩
-     *
-     * @param inputFile  需要压缩的文件或文件夹
-     * @param outputFile 压缩后的文件
-     * @param type       压缩类型
-     */
-    public static void zip(File inputFile, File outputFile, CompressType type) {
-        ZipOutputStream zos = null;
+    public static void zip(String zipFile, CompressType compressType, String... pathName) {
+        ZipOutputStream out;
         try {
-            if (type == CompressType.ZIP) {
-                zos = new ZipOutputStream(new FileOutputStream(outputFile));
-            } else if (type == CompressType.JAR) {
-                zos = new JarOutputStream(new FileOutputStream(outputFile));
+            FileOutputStream fileOutputStream = new FileOutputStream(zipFile);
+            CheckedOutputStream cos = new CheckedOutputStream(fileOutputStream,
+                    new CRC32());
+            if (CompressType.JAR == compressType) {
+                out = new JarOutputStream(cos);
             } else {
-                zos = new ZipOutputStream(new FileOutputStream(outputFile));
+                out = new ZipOutputStream(cos);
             }
-            zipFile(zos, inputFile, null);
-            log.info("FINISHED ZIP");
-        } catch (IOException e) {
-            log.error("FAILED TO ZIP");
+            String basedir = "";
+            for (int i = 0; i < pathName.length; i++) {
+                zip(new File(pathName[i]), out, basedir);
+            }
+            out.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
-    /**
-     * 压缩单个文件到指定压缩流里
-     *
-     * @param zos       压缩输出流
-     * @param inputFile 需要压缩的文件
-     * @param path      需要压缩的文件在压缩包里的路径
-     * @throws FileNotFoundException
-     */
-    public static void zipSingleFile(ZipOutputStream zos, File inputFile, String path) throws IOException {
+    public static void zip(String zipFile, CompressType compressType, String srcPathName) {
+        File file = new File(srcPathName);
+        if (!file.exists()) {
+            throw new RuntimeException(srcPathName + "不存在！");
+        }
         try {
-            InputStream in = new FileInputStream(inputFile);
-            zos.putNextEntry(new ZipEntry(path));
-            copy(in, zos);
-        } catch (IOException e) {
-            throw e;
+            FileOutputStream fileOutputStream = new FileOutputStream(zipFile);
+            CheckedOutputStream cos = new CheckedOutputStream(fileOutputStream,
+                    new CRC32());
+            ZipOutputStream out;
+            if (CompressType.JAR == compressType) {
+                out = new JarOutputStream(cos);
+            } else {
+                out = new ZipOutputStream(cos);
+            }
+            String basedir = "";
+            zip(file, out, basedir);
+            out.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void zip(File file, ZipOutputStream out, String basedir) {
+        /* 判断是目录还是文件 */
+        if (file.isDirectory()) {
+            log.debug("zip file - " + basedir + file.getName());
+            zipDirectory(file, out, basedir);
+        } else {
+            log.debug("zip file - " + basedir + file.getName());
+            zipFile(file, out, basedir);
         }
     }
 
     /**
-     * 如果是单个文件，那么就直接进行压缩。如果是文件夹，那么递归压缩所有文件夹里的文件
-     *
-     * @param zos       压缩输出流
-     * @param inputFile 需要压缩的文件
-     * @param path      需要压缩的文件在压缩包里的路径
+     * 压缩一个目录
      */
-    public static void zipFile(ZipOutputStream zos, File inputFile, String path) {
-        if (inputFile.isDirectory()) {
-            // 记录压缩包中文件的全路径
-            String fp;
-            File[] fileList = inputFile.listFiles();
-            for (File file : fileList) {
-                // 如果路径为空，说明是根目录
-                if (path == null || path.isEmpty()) {
-                   fp = file.getName();
-                } else {
-                    fp = path + "/" + file.getName();
-                }
-                // 如果是目录递归调用，直到遇到文件为止
-                zipFile(zos, file, fp);
+    private static void zipDirectory(File dir, ZipOutputStream out, String basedir) {
+        if (!dir.exists())
+            return;
+
+        File[] files = dir.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            /* 递归 */
+            zip(files[i], out, basedir + dir.getName() + "/");
+        }
+    }
+
+    /**
+     * 压缩一个文件
+     */
+    private static void zipFile(File file, ZipOutputStream out, String basedir) {
+        if (!file.exists()) {
+            return;
+        }
+        try {
+            BufferedInputStream bis = new BufferedInputStream(
+                    new FileInputStream(file));
+            ZipEntry entry = new ZipEntry(basedir + file.getName());
+            out.putNextEntry(entry);
+            int count;
+            byte data[] = new byte[BUFFER];
+            while ((count = bis.read(data, 0, BUFFER)) != -1) {
+                out.write(data, 0, count);
             }
-        } else {
-            try {
-                zipSingleFile(zos, inputFile, path);
-            } catch (IOException e) {
-                log.warn("ERROR WHEN zipping single file " + inputFile + " to path " + path);
-            }
+            bis.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -229,7 +265,7 @@ public class FileUtil {
         }
 
         ZipEntry entry = null;
-        OutputStream output = null;
+        OutputStream output;
         InputStream input = null;
         File file = null;
         try (
@@ -241,7 +277,7 @@ public class FileUtil {
                 // 拼装压缩后真实文件路径
                 String fileName = path + entry.getName();
 
-                log.debug("filename = " + fileName);
+                log.debug("unZip filename = " + fileName);
                 // 创建文件缺失的目录（不然会报异常：找不到指定文件）
                 file = new File(fileName);
                 // 可能是文件夹

@@ -24,9 +24,10 @@ public class FileAction {
 
         List<String> files = FileUtil.readFileByLine(sourcefilesPath);
         log.debug("loaded source files " + JSON.toJSONString(files));
-        String tempFolder = SysConst.getConfig().getTempFolder();
+        File fTempFolder = new File(SysConst.getConfig().getTempFolder());
+        FileUtil.createFileIfNotExist(fTempFolder);
         // 清除之前的文件
-        if (deleteFolder(tempFolder)) {
+        if (FileUtil.clearFolder(fTempFolder)) {
             try {
                 for (String file: files) {
                     doSourceFileAction(file);
@@ -50,8 +51,11 @@ public class FileAction {
         List<String> files = FileUtil.readFileByLine(sourcefilesPath);
         log.debug("loaded source files " + JSON.toJSONString(files));
         String tempFolder = SysConst.getConfig().getTempFolder();
+        log.debug("tempFolder = " + tempFolder);
+        File fTempFolder = new File(tempFolder);
+        FileUtil.createFileIfNotExist(fTempFolder);
         // 清除之前的文件
-        if (deleteFolder(tempFolder)) {
+        if (FileUtil.clearFolder(fTempFolder)) {
             String fileJar = SysConst.getConfig().getOriginalJarFolder() + "/" + SysConst.getConfig().getOriginalJarFilename();
             try {
                 doExectJarAction(fileJar, tempFolder);
@@ -59,13 +63,10 @@ public class FileAction {
                     doSourceFileAction(file);
                     doClassFileAction(file);
                 }
-                String targetFile = SysConst.getConfig().getTempFolder() + "./../" + SysConst.getConfig().getTargetJarFilename();
-                File fTargetFile = new File(targetFile);
-                if (fTargetFile.exists()) {
-                    fTargetFile.delete();
-                }
-
-                doCompressJarAction(SysConst.getConfig().getTempFolder(), targetFile);
+                String tempJarFile = SysConst.getConfig().getTempFolder() + "./../" + SysConst.getConfig().getTargetJarFilename();
+                FileUtil.deleteFileIfExist(tempJarFile);
+                doCompressJarAction(SysConst.getConfig().getTempFolder(), tempJarFile);
+                doCopyJar2TargetFolder(tempJarFile);
             } catch (IOException ioe) {
                 log.error("File operation error.");
             }
@@ -75,8 +76,12 @@ public class FileAction {
     }
 
 
-    private boolean deleteFolder(String file) {
-        return FileUtil.delFile(file + "/");
+    private void doCopyJar2TargetFolder(String jarFile) {
+        if (SysConst.getConfig().isCopyTempJar2TargetFolder()) {
+            String finalTargetFile = SysConst.getConfig().getTargetJarFolder() + "/" + SysConst.getConfig().getTargetJarFilename();
+            FileUtil.copyFile(jarFile, finalTargetFile);
+            log.info("ALREADY COPIED jar from temp folder to target jar folder.");
+        }
     }
 
     protected void doExectJarAction(String file, String path) throws IOException {
@@ -84,7 +89,7 @@ public class FileAction {
     }
 
     protected void doCompressJarAction(String file, String targetFile) {
-        FileUtil.zip(file, targetFile, CompressType.JAR);
+        FileUtil.zip(targetFile, CompressType.JAR, file);
     }
 
     /**
