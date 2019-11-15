@@ -24,6 +24,8 @@ java -jar collectfiles.jar
 临时停放目录(Required)
 > temp-folder=D:/svn/2019-icbc/mpay_1.0.1.8_P2019100901_icbc/tdshome/QPaymentRefund_jar/QPaymentRefund
 
+最终生成文件在 `临时停放目录(Required)`
+手动放入jar中
 ---
 ### 以下暂无用, 等后期开发
 最终将打包的文件拷贝目录
@@ -31,3 +33,6 @@ java -jar collectfiles.jar
 
 打包文件名
 > target-jar-filename=QPaymentRefund.jar
+
+
+
