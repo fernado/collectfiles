@@ -14,8 +14,12 @@ java -jar collectfiles.jar
 ## 描述
 需要拷贝的文件集(Required)
 > source-file=./sourcefiles
-```shell script
 
+sourcefiles 文件格式如下
+```shell script
+src/com/mp/QPaymentRefund/HttpPostService.java
+src/com/mp/QPaymentRefund/LIBRefundTran.java
+src/com/mp/QPaymentRefund/Factory/MPRefundTran.java
 ```
 源文件路径(Required), 由于从SVN上拷贝, 此处删除 /src 目录 
 > source-folder=D:/svn/2019-icbc/mpay_1.0.1.8_P2019100901_icbc/tdshome
