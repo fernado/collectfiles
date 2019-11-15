@@ -23,7 +23,7 @@ public class SysConst {
             config.setTargetJarFolder(properties.getProperty("target-jar-folder"));
             config.setTargetJarFilename(properties.getProperty("target-jar-filename"));
         }
-        log.info("config " + JSON.toJSONString(config));
+        log.debug("chcp 65001 config " + JSON.toJSONString(config));
         return config;
     }
 
@@ -32,7 +32,7 @@ public class SysConst {
         try {
             properties.load(new FileInputStream(Const.CONFIG_FILE_PATH));
         } catch (IOException e) {
-            System.err.println("Load config file error!");
+            log.error("chcp 65001 Load config file error!");
         }
         return properties;
     }

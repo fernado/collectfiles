@@ -19,14 +19,14 @@ public class FileUtil {
             while ((len = bis.read()) != -1) {
                 bos.write(len);
             }
-            log.info("copy file from " + srcfile  + " to " + targetfile + "success.");
+            log.debug("chcp 65001 copy file from " + srcfile + " to " + targetfile);
         } catch (Exception e) {
-            log.info("copy file from " + srcfile  + " to " + targetfile + "failure.");
+            log.warn("chcp 65001 copy file from " + srcfile  + " to " + targetfile + " failure.");
         }
     }
 
     public static void createFolders(String targetfile) {
-        File fTargetFile = new File(targetfile.substring(0, targetfile.lastIndexOf(File.separator)));
+        File fTargetFile = new File(targetfile.substring(0, targetfile.lastIndexOf("/")));
         if (!fTargetFile.isDirectory()) {
             fTargetFile.mkdirs();
         }
@@ -79,7 +79,6 @@ public class FileUtil {
                 e.printStackTrace();
             }
         }
-        System.out.println("-----------------------------------");
         try {
             is = new FileInputStream(file);
             byte[] tempbyte = new byte[1000];
