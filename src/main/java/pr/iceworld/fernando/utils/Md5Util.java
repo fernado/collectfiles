@@ -20,7 +20,7 @@ public class Md5Util {
         try {
             messagedigest = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException nsaex) {
-            log.error("chcp 65001 MessageDigest not support MD5");
+            log.error("MessageDigest not support MD5");
             nsaex.printStackTrace();
         }
     }
@@ -61,7 +61,7 @@ public class Md5Util {
                 messagedigest.update(buffer, 0, numRead);
             }
         } catch (IOException ioe) {
-            log.error("chcp 65001 file - " + file + " md5 caculates error.");
+            log.error("file - " + file + " md5 caculates error.");
             throw ioe;
         }
 

@@ -19,9 +19,9 @@ public class FileUtil {
             while ((len = bis.read()) != -1) {
                 bos.write(len);
             }
-            log.debug("chcp 65001 copy file from " + srcfile + " to " + targetfile);
+            log.debug("copy file from " + srcfile + " to " + targetfile);
         } catch (Exception e) {
-            log.warn("chcp 65001 copy file from " + srcfile  + " to " + targetfile + " failure.");
+            log.warn("FAILUED when coping file from " + srcfile  + " to " + targetfile);
         }
     }
 

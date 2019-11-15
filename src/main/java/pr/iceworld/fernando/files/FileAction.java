@@ -23,37 +23,58 @@ public class FileAction {
         }
 
         List<String> files = FileUtil.readFileByLine(sourcefilesPath);
-        log.debug("chcp 65001 loaded source files " + JSON.toJSONString(files));
-
+        log.debug("loaded source files " + JSON.toJSONString(files));
         try {
             for (String file: files) {
-                // copy java to java
-                String srcFile = SysConst.getConfig().getSourceFolder() + "/" + file;
-                String targetFile = SysConst.getConfig().getTempFolder() + "/" + file;
-                targetFile = filterOutFolder(targetFile, "src");
-                FileUtil.copyFile(srcFile, targetFile);
-                String srcFileMd5 = Md5Util.getFileMd5Str(new File(srcFile));
-                String targetFileMd5 = Md5Util.getFileMd5Str(new File(targetFile));
-                if (StringUtils.equals(srcFileMd5, targetFileMd5)) {
-                    log.info("chcp 65001 VERIFIED successfully by md5, copy file from " + srcFile  + " to " + targetFile);
-                }
-
-                // copy class to class
-                srcFile = SysConst.getConfig().getCompiledClassFolder() + "/" + file;
-                srcFile = filterOutFolder(srcFile, "src");
-                String compiledFile = srcFile.substring(0, srcFile.indexOf(".java")) + ".class";
-                targetFile = SysConst.getConfig().getTempFolder() + compiledFile.substring(SysConst.getConfig().getCompiledClassFolder().length());
-                FileUtil.copyFile(compiledFile, targetFile);
-                String compiledFileMd5 = Md5Util.getFileMd5Str(new File(compiledFile));
-                targetFileMd5 = Md5Util.getFileMd5Str(new File(targetFile));
-                if (StringUtils.equals(compiledFileMd5, targetFileMd5)) {
-                    log.info("chcp 65001 VERIFIED successfully by md5, copy file from " + compiledFile  + " to " + targetFile);
-                }
+                doSourceFileAction(file);
+                doClassFileAction(file);
             }
         } catch (IOException ioe) {
-            log.error("chcp 65001 File operation error.");
+            log.error("File operation error.");
         }
+    }
 
+    private void doSourceFileAction(String file) throws IOException {
+        // copy java to java
+        String srcFile = SysConst.getConfig().getSourceFolder() + "/" + file;
+        String targetFile = SysConst.getConfig().getTempFolder() + "/" + file;
+        targetFile = filterOutFolder(targetFile, "src");
+        File fSrcFile = new File(srcFile);
+        if (!fSrcFile.exists()) {
+            log.warn("file IS NOT EXISTS - " + srcFile);
+        }
+        FileUtil.copyFile(srcFile, targetFile);
+        File fTargetFile = new File(targetFile);
+        if (!fTargetFile.exists()) {
+            log.warn("file IS NOT EXISTS - " + fTargetFile);
+        }
+        String srcFileMd5 = Md5Util.getFileMd5Str(fSrcFile);
+        String targetFileMd5 = Md5Util.getFileMd5Str(fTargetFile);
+        if (StringUtils.equals(srcFileMd5, targetFileMd5)) {
+            log.info("VERIFIED successfully by md5, copy file from " + srcFile  + " to " + targetFile);
+        }
+    }
+
+    private void doClassFileAction(String file) throws IOException {
+        // copy class to class
+        String srcFile = SysConst.getConfig().getCompiledClassFolder() + "/" + file;
+        srcFile = filterOutFolder(srcFile, "src");
+        String compiledFile = srcFile.substring(0, srcFile.indexOf(".java")) + ".class";
+        String targetFile = SysConst.getConfig().getTempFolder() + compiledFile.substring(SysConst.getConfig().getCompiledClassFolder().length());
+        File fSrcFile = new File(compiledFile);
+        if (!fSrcFile.exists()) {
+            log.warn("file IS NOT EXISTS - " + compiledFile);
+        }
+        FileUtil.copyFile(compiledFile, targetFile);
+        File fTargetFile = new File(targetFile);
+        if (!fTargetFile.exists()) {
+            log.warn("file IS NOT EXISTS - " + fTargetFile);
+        }
+        String compiledFileMd5 = Md5Util.getFileMd5Str(fSrcFile);
+        String targetFileMd5 = Md5Util.getFileMd5Str(fTargetFile);
+        if (StringUtils.equals(compiledFileMd5, targetFileMd5)) {
+            log.info("VERIFIED successfully by md5, copy file from " + compiledFile  + " to " + targetFile);
+        }
     }
 
     public String filterOutFolder(String file, String foldername) {
