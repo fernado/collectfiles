@@ -22,6 +22,8 @@ public class SysConst {
             config.setTempFolder(properties.getProperty("temp-folder"));
             config.setTargetJarFolder(properties.getProperty("target-jar-folder"));
             config.setTargetJarFilename(properties.getProperty("target-jar-filename"));
+            config.setOriginalJarFilename(properties.getProperty("original-jar-filename"));
+            config.setOriginalJarFolder(properties.getProperty("original-jar-folder"));
         }
         log.debug("config " + JSON.toJSONString(config));
         return config;
