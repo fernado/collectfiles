@@ -1,6 +1,7 @@
 package pr.iceworld.fernando.files;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.utils.IOUtils;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -36,15 +37,8 @@ public class FileUtil {
      */
     public static void copyFile(String srcfile, String targetfile) {
         createParentFolders(targetfile);
-        try (
-                BufferedInputStream bis = new BufferedInputStream(new FileInputStream(srcfile));
-                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(targetfile));
-        ) {
-            int len;
-            while ((len = bis.read()) != -1) {
-                bos.write(len);
-            }
-            bos.flush();
+        try {
+            IOUtils.copy(new FileInputStream(srcfile), new FileOutputStream(targetfile));
             log.debug("copy file from " + srcfile + " to " + targetfile);
         } catch (Exception e) {
             log.warn("FAILUED when coping file from " + srcfile + " to " + targetfile);
@@ -210,8 +204,9 @@ public class FileUtil {
      * 压缩一个目录
      */
     private static void zipDirectory(File dir, ZipOutputStream out, String basedir) {
-        if (!dir.exists())
+        if (!dir.exists()) {
             return;
+        }
 
         File[] files = dir.listFiles();
         for (int i = 0; i < files.length; i++) {

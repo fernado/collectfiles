@@ -3,9 +3,11 @@ package pr.iceworld.fernando.files;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 import pr.iceworld.fernando.consts.Const;
 import pr.iceworld.fernando.utils.Md5Util;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -13,10 +15,14 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @Slf4j
+@Service
 public class FileAction {
 
+    @Resource
+    private Config config;
+
     public void doNormal() {
-        String sourcefilesPath = SysConst.getConfig().getSourceFile();
+        String sourcefilesPath = config.getSourceFile();
         Path path = Paths.get(sourcefilesPath);
         if (!path.isAbsolute()) {
             sourcefilesPath = Const.CONFIG_PATH + "/" + sourcefilesPath;
@@ -24,7 +30,7 @@ public class FileAction {
 
         List<String> files = FileUtil.readFileByLine(sourcefilesPath);
         log.debug("loaded source files " + JSON.toJSONString(files));
-        File fTempFolder = new File(SysConst.getConfig().getTempFolder());
+        File fTempFolder = new File(config.getTempFolder());
         FileUtil.createFileIfNotExist(fTempFolder);
         // 清除之前的文件
         if (FileUtil.clearFolder(fTempFolder)) {
@@ -42,7 +48,7 @@ public class FileAction {
     }
 
     public void doAdvanced() {
-        String sourcefilesPath = SysConst.getConfig().getSourceFile();
+        String sourcefilesPath = config.getSourceFile();
         Path path = Paths.get(sourcefilesPath);
         if (!path.isAbsolute()) {
             sourcefilesPath = Const.CONFIG_PATH + "/" + sourcefilesPath;
@@ -50,22 +56,22 @@ public class FileAction {
 
         List<String> files = FileUtil.readFileByLine(sourcefilesPath);
         log.debug("loaded source files " + JSON.toJSONString(files));
-        String tempFolder = SysConst.getConfig().getTempFolder();
+        String tempFolder = config.getTempFolder();
         log.debug("tempFolder = " + tempFolder);
         File fTempFolder = new File(tempFolder);
         FileUtil.createFileIfNotExist(fTempFolder);
         // 清除之前的文件
         if (FileUtil.clearFolder(fTempFolder)) {
-            String fileJar = SysConst.getConfig().getOriginalJarFolder() + "/" + SysConst.getConfig().getOriginalJarFilename();
+            String fileJar = config.getOriginalJarFolder() + "/" + config.getOriginalJarFilename();
             try {
                 doExectJarAction(fileJar, tempFolder);
                 for (String file: files) {
                     doSourceFileAction(file);
                     doClassFileAction(file);
                 }
-                String tempJarFile = SysConst.getConfig().getTempFolder() + "./../" + SysConst.getConfig().getTargetJarFilename();
+                String tempJarFile = config.getTempFolder() + "./../" + config.getTargetJarFilename();
                 FileUtil.deleteFileIfExist(tempJarFile);
-                doCompressJarAction(SysConst.getConfig().getTempFolder(), tempJarFile);
+                doCompressJarAction(config.getTempFolder(), tempJarFile);
                 doCopyJar2TargetFolder(tempJarFile);
             } catch (IOException ioe) {
                 log.error("File operation error.");
@@ -77,8 +83,8 @@ public class FileAction {
 
 
     private void doCopyJar2TargetFolder(String jarFile) {
-        if (SysConst.getConfig().isCopyTempJar2TargetFolder()) {
-            String finalTargetFile = SysConst.getConfig().getTargetJarFolder() + "/" + SysConst.getConfig().getTargetJarFilename();
+        if (config.isCopyTempJar2TargetFolder()) {
+            String finalTargetFile = config.getTargetJarFolder() + "/" + config.getTargetJarFilename();
             FileUtil.copyFile(jarFile, finalTargetFile);
             log.info("ALREADY COPIED jar from temp folder to target jar folder.");
         }
@@ -89,7 +95,8 @@ public class FileAction {
     }
 
     protected void doCompressJarAction(String file, String targetFile) {
-        FileUtil.zip(targetFile, CompressType.JAR, file);
+        //FileUtil.zip(targetFile, CompressType.JAR, file);
+        NewFileUtil.zipFile(new File(targetFile), CompressType.JAR, new File(file));
     }
 
     /**
@@ -98,8 +105,8 @@ public class FileAction {
      * @throws IOException
      */
     private void doSourceFileAction(String file) throws IOException {
-        String srcFile = SysConst.getConfig().getSourceFolder() + "/" + file;
-        String targetFile = SysConst.getConfig().getTempFolder() + "/" + file;
+        String srcFile = config.getSourceFolder() + "/" + file;
+        String targetFile = config.getTempFolder() + "/" + file;
         targetFile = filterOutFolder(targetFile, "src");
         File fSrcFile = new File(srcFile);
         if (!fSrcFile.exists()) {
@@ -125,10 +132,10 @@ public class FileAction {
      * @throws IOException
      */
     private void doClassFileAction(String file) throws IOException {
-        String srcFile = SysConst.getConfig().getCompiledClassFolder() + "/" + file;
+        String srcFile = config.getCompiledClassFolder() + "/" + file;
         srcFile = filterOutFolder(srcFile, "src");
         String compiledFile = srcFile.substring(0, srcFile.indexOf(".java")) + ".class";
-        String targetFile = SysConst.getConfig().getTempFolder() + compiledFile.substring(SysConst.getConfig().getCompiledClassFolder().length());
+        String targetFile = config.getTempFolder() + compiledFile.substring(config.getCompiledClassFolder().length());
         File fSrcFile = new File(compiledFile);
         if (!fSrcFile.exists()) {
             log.warn("file IS NOT EXISTS - " + compiledFile);
