@@ -1,4 +1,4 @@
-set JAVA_HOME=C:\PROGRA~1\Java\jdk1.8.0_201
+set JAVA_HOME=C:\PROGRA~1\Java\jdk1.6.0_45
 
 : %JAVA_HOME%\bin\java -jar collectfiles.jar
 
