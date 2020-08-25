@@ -78,6 +78,9 @@ public class NewFileUtil {
             return;
         }
         String filename = srcFile.getAbsolutePath().substring(basedir.getAbsolutePath().length() + 1);
+        // Here has a big unreasonable issue, if not use this to replace especially in windows to generate jar,
+        // any famous decompiler could not found the jar package in it's GUI, but can extract them to folder.
+        filename = filename.replace("\\", "/");
         String[] ss = filename.split("/");
         try {
             logger.debug("filename = {}", filename);
