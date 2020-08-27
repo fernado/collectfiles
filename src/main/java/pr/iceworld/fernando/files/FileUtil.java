@@ -1,7 +1,8 @@
 package pr.iceworld.fernando.files;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -9,8 +10,10 @@ import java.util.List;
 import java.util.jar.JarOutputStream;
 import java.util.zip.*;
 
-@Slf4j
+
 public class FileUtil {
+
+    private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
     public static final int BUFFER = 8192;
 
@@ -39,9 +42,9 @@ public class FileUtil {
         createParentFolders(targetfile);
         try {
             IOUtils.copy(new FileInputStream(srcfile), new FileOutputStream(targetfile));
-            log.debug("copy file from " + srcfile + " to " + targetfile);
+            logger.debug("copy file from " + srcfile + " to " + targetfile);
         } catch (Exception e) {
-            log.warn("FAILUED when coping file from " + srcfile + " to " + targetfile);
+            logger.warn("FAILUED when coping file from " + srcfile + " to " + targetfile);
         }
     }
 
@@ -53,34 +56,42 @@ public class FileUtil {
      */
     public static void copyFile(File srcfile, File targetfile) {
         createParentFolders(targetfile);
-        try (
-                BufferedInputStream bis = new BufferedInputStream(new FileInputStream(srcfile));
-                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(targetfile));
-        ) {
+        BufferedInputStream bis = null;
+        BufferedOutputStream bos = null;
+        try{
+            bis = new BufferedInputStream(new FileInputStream(srcfile));
+            bos = new BufferedOutputStream(new FileOutputStream(targetfile));
             int len;
             while ((len = bis.read()) != -1) {
                 bos.write(len);
             }
             bos.flush();
-            log.debug("copy file from " + srcfile + " to " + targetfile);
+            logger.debug("copy file from " + srcfile + " to " + targetfile);
         } catch (Exception e) {
-            log.warn("FAILUED when coping file from " + srcfile + " to " + targetfile);
+            logger.warn("FAILUED when coping file from " + srcfile + " to " + targetfile);
+        } finally {
+            IOUtils.closeQuietly(bos);
+            IOUtils.closeQuietly(bis);
         }
     }
 
     private static void copy(InputStream input, OutputStream output) {
-        try (
-                BufferedInputStream bis = new BufferedInputStream(input);
-                BufferedOutputStream bos = new BufferedOutputStream(output);
-        ) {
+        BufferedInputStream bis = null;
+        BufferedOutputStream bos = null;
+        try {
+            bis = new BufferedInputStream(input);
+            bos = new BufferedOutputStream(output);
             int len;
             while ((len = bis.read()) != -1) {
                 bos.write(len);
             }
             bos.flush();
-            log.debug("copy stream from input to output");
+            logger.debug("copy stream from input to output");
         } catch (Exception e) {
-            log.warn("FAILUED when copy stream from input to output");
+            logger.warn("FAILUED when copy stream from input to output");
+        } finally {
+            IOUtils.closeQuietly(bos);
+            IOUtils.closeQuietly(bis);
         }
     }
 
@@ -131,16 +142,24 @@ public class FileUtil {
      */
     public static List<String> readFileByLine(String filename) {
         File file = new File(filename);
-        List<String> lines = new ArrayList<>();
-        try (InputStream is = new FileInputStream(file);
-             Reader reader = new InputStreamReader(is);
-             BufferedReader bufferedReader = new BufferedReader(reader)) {
+        List<String> lines = new ArrayList<String>();
+        InputStream is = null;
+        Reader reader = null;
+        BufferedReader bufferedReader = null;
+        try  {
+            is = new FileInputStream(file);
+            reader = new InputStreamReader(is);
+            bufferedReader = new BufferedReader(reader);
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 lines.add(line);
             }
         } catch (IOException e) {
-            log.error("Read file by line ERROR - " + filename);
+            logger.error("Read file by line ERROR - " + filename);
+        } finally {
+            IOUtils.closeQuietly(bufferedReader);
+            IOUtils.closeQuietly(reader);
+            IOUtils.closeQuietly(is);
         }
         return lines;
     }
@@ -192,10 +211,10 @@ public class FileUtil {
     private static void zip(File file, ZipOutputStream out, String basedir) {
         /* 判断是目录还是文件 */
         if (file.isDirectory()) {
-            log.debug("zip file - " + basedir + file.getName());
+            logger.debug("zip file - " + basedir + file.getName());
             zipDirectory(file, out, basedir);
         } else {
-            log.debug("zip file - " + basedir + file.getName());
+            logger.debug("zip file - " + basedir + file.getName());
             zipFile(file, out, basedir);
         }
     }
@@ -225,7 +244,9 @@ public class FileUtil {
         try {
             BufferedInputStream bis = new BufferedInputStream(
                     new FileInputStream(file));
-            ZipEntry entry = new ZipEntry(basedir + file.getName());
+            String filename = basedir + file.getName();
+            filename = filename.replace("\\", "/");
+            ZipEntry entry = new ZipEntry(filename);
             out.putNextEntry(entry);
             int count;
             byte data[] = new byte[BUFFER];
@@ -263,16 +284,15 @@ public class FileUtil {
         OutputStream output;
         InputStream input = null;
         File file = null;
-        try (
-                ZipFile zipFile = new ZipFile(inputFile);
-                ZipInputStream zipInput = new ZipInputStream(new FileInputStream(inputFile));
-        ) {
+        try {
+            ZipFile zipFile = new ZipFile(inputFile);
+            ZipInputStream zipInput = new ZipInputStream(new FileInputStream(inputFile));
             String path = outputFile.getAbsolutePath() + "/";
             while ((entry = zipInput.getNextEntry()) != null) {
                 // 拼装压缩后真实文件路径
                 String fileName = path + entry.getName();
 
-                log.debug("unZip filename = " + fileName);
+                logger.debug("unZip filename = " + fileName);
                 // 创建文件缺失的目录（不然会报异常：找不到指定文件）
                 file = new File(fileName);
                 // 可能是文件夹
@@ -297,16 +317,16 @@ public class FileUtil {
                 }
             }
         } catch (ZipException e) {
-            log.error("ERROR WHEN ZIP file. " + (null != entry ? entry.getName() : ""));
+            logger.error("ERROR WHEN ZIP file. " + (null != entry ? entry.getName() : ""));
             throw e;
         } catch (IOException e) {
-            log.error("ERROR WHEN ZIP file - file might not exists. " + (null != file ? file.getAbsolutePath() : ""));
+            logger.error("ERROR WHEN ZIP file - file might not exists. " + (null != file ? file.getAbsolutePath() : ""));
             throw e;
         } finally {
             try {
                 close(input);
             } catch (IOException e) {
-                log.error("ERROR CLOSE stream.");
+                logger.error("ERROR CLOSE stream.");
             }
         }
     }

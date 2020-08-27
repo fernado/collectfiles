@@ -13,7 +13,7 @@
         <!--定义控制台输出格式-->
         <encoder>
             <pattern>${CONSOLE_LOG_PATTERN}</pattern>
-            <charset>GBK</charset>
+            <charset>UTF-8</charset>
         </encoder>
     </appender>
 
@@ -43,11 +43,18 @@
     </appender>
 
 
+<!--    <root level="debug">-->
+<!--        <appender-ref ref = "stdout"></appender-ref>-->
+<!--    </root>-->
     <!--对于类路径以 com.example.logback 开头的Logger,输出级别设置为warn,并且只输出到控制台-->
     <!--这个logger没有指定appender，它会继承root节点中定义的那些appender-->
     <logger name="pr.iceworld.fernando" level="INFO">
         <appender-ref ref = "stdout"></appender-ref>
 <!--        <appender-ref ref = "file"></appender-ref>-->
+    </logger>
+
+    <logger name="org.springframework" level="debug">
+        <appender-ref ref = "stdout"></appender-ref>
     </logger>
 
 </configuration>

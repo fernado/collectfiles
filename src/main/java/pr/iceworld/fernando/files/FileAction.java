@@ -1,8 +1,9 @@
 package pr.iceworld.fernando.files;
 
 import com.alibaba.fastjson.JSON;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import pr.iceworld.fernando.consts.Const;
 import pr.iceworld.fernando.utils.Md5Util;
@@ -10,26 +11,21 @@ import pr.iceworld.fernando.utils.Md5Util;
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
-@Slf4j
 @Service
 public class FileAction {
+    private static final Logger logger = LoggerFactory.getLogger(FileAction.class);
 
     @Resource
     private Config config;
 
     public void doNormal() {
         String sourcefilesPath = config.getSourceFile();
-        Path path = Paths.get(sourcefilesPath);
-        if (!path.isAbsolute()) {
-            sourcefilesPath = Const.CONFIG_PATH + "/" + sourcefilesPath;
-        }
+        sourcefilesPath = Const.CONFIG_PATH + "/" + sourcefilesPath;
 
         List<String> files = FileUtil.readFileByLine(sourcefilesPath);
-        log.debug("loaded source files " + JSON.toJSONString(files));
+        logger.debug("loaded source files " + JSON.toJSONString(files));
         File fTempFolder = new File(config.getTempFolder());
         FileUtil.createFileIfNotExist(fTempFolder);
         // 清除之前的文件
@@ -40,24 +36,21 @@ public class FileAction {
                     doClassFileAction(file);
                 }
             } catch (IOException ioe) {
-                log.error("File operation error.");
+                logger.error("File operation error.");
             }
         } else {
-            log.error("File DELETE ERROR.");
+            logger.error("File DELETE ERROR.");
         }
     }
 
     public void doAdvanced() {
         String sourcefilesPath = config.getSourceFile();
-        Path path = Paths.get(sourcefilesPath);
-        if (!path.isAbsolute()) {
-            sourcefilesPath = Const.CONFIG_PATH + "/" + sourcefilesPath;
-        }
+        sourcefilesPath = Const.CONFIG_PATH + "/" + sourcefilesPath;
 
         List<String> files = FileUtil.readFileByLine(sourcefilesPath);
-        log.debug("loaded source files " + JSON.toJSONString(files));
+        logger.debug("loaded source files " + JSON.toJSONString(files));
         String tempFolder = config.getTempFolder();
-        log.debug("tempFolder = " + tempFolder);
+        logger.debug("tempFolder = " + tempFolder);
         File fTempFolder = new File(tempFolder);
         FileUtil.createFileIfNotExist(fTempFolder);
         // 清除之前的文件
@@ -74,10 +67,10 @@ public class FileAction {
                 doCompressJarAction(config.getTempFolder(), tempJarFile);
                 doCopyJar2TargetFolder(tempJarFile);
             } catch (IOException ioe) {
-                log.error("File operation error.");
+                logger.error("File operation error.");
             }
         } else {
-            log.error("File DELETE ERROR.");
+            logger.error("File DELETE ERROR.");
         }
     }
 
@@ -86,7 +79,7 @@ public class FileAction {
         if (config.isCopyTempJar2TargetFolder()) {
             String finalTargetFile = config.getTargetJarFolder() + "/" + config.getTargetJarFilename();
             FileUtil.copyFile(jarFile, finalTargetFile);
-            log.info("ALREADY COPIED jar from temp folder to target jar folder.");
+            logger.info("ALREADY COPIED jar from temp folder to target jar folder.");
         }
     }
 
@@ -110,19 +103,19 @@ public class FileAction {
         targetFile = filterOutFolder(targetFile, "src");
         File fSrcFile = new File(srcFile);
         if (!fSrcFile.exists()) {
-            log.warn("file IS NOT EXISTS - " + srcFile);
+            logger.warn("file IS NOT EXISTS - " + srcFile);
         }
 
         FileUtil.delFile(targetFile);
         FileUtil.copyFile(srcFile, targetFile);
         File fTargetFile = new File(targetFile);
         if (!fTargetFile.exists()) {
-            log.warn("file IS NOT EXISTS - " + fTargetFile);
+            logger.warn("file IS NOT EXISTS - " + fTargetFile);
         }
         String srcFileMd5 = Md5Util.getFileMd5Str(fSrcFile);
         String targetFileMd5 = Md5Util.getFileMd5Str(fTargetFile);
         if (StringUtils.equals(srcFileMd5, targetFileMd5)) {
-            log.info("VERIFIED successfully by md5, copy file from " + srcFile  + " to " + targetFile);
+            logger.info("VERIFIED successfully by md5, copy file from " + srcFile  + " to " + targetFile);
         }
     }
 
@@ -138,18 +131,18 @@ public class FileAction {
         String targetFile = config.getTempFolder() + compiledFile.substring(config.getCompiledClassFolder().length());
         File fSrcFile = new File(compiledFile);
         if (!fSrcFile.exists()) {
-            log.warn("file IS NOT EXISTS - " + compiledFile);
+            logger.warn("file IS NOT EXISTS - " + compiledFile);
         }
         FileUtil.delFile(targetFile);
         FileUtil.copyFile(compiledFile, targetFile);
         File fTargetFile = new File(targetFile);
         if (!fTargetFile.exists()) {
-            log.warn("file IS NOT EXISTS - " + fTargetFile);
+            logger.warn("file IS NOT EXISTS - " + fTargetFile);
         }
         String compiledFileMd5 = Md5Util.getFileMd5Str(fSrcFile);
         String targetFileMd5 = Md5Util.getFileMd5Str(fTargetFile);
         if (StringUtils.equals(compiledFileMd5, targetFileMd5)) {
-            log.info("VERIFIED successfully by md5, copy file from " + compiledFile  + " to " + targetFile);
+            logger.info("VERIFIED successfully by md5, copy file from " + compiledFile  + " to " + targetFile);
         }
     }
 

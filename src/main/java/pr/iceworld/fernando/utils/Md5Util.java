@@ -1,6 +1,8 @@
 package pr.iceworld.fernando.utils;
 
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.utils.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,18 +11,18 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-@Slf4j
 public class Md5Util {
 
     protected static char hexDigits[] = { '0', '1', '2', '3', '4', '5', '6',
             '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
+    private static final Logger logger = LoggerFactory.getLogger(Md5Util.class);
     protected static MessageDigest messagedigest = null;
     static {
         try {
             messagedigest = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException nsaex) {
-            log.error("MessageDigest not support MD5");
+            logger.error("MessageDigest not support MD5");
             nsaex.printStackTrace();
         }
     }
@@ -54,15 +56,19 @@ public class Md5Util {
      * @throws IOException
      */
     public static String getFileMd5Str(File file) throws IOException {
-        try(InputStream fis = new FileInputStream(file);) {
+        InputStream fis = null;
+        try {
+            fis = new FileInputStream(file);
             byte[] buffer = new byte[1024];
             int numRead = 0;
             while ((numRead = fis.read(buffer)) > 0) {
                 messagedigest.update(buffer, 0, numRead);
             }
         } catch (IOException ioe) {
-            log.error("file - " + file + " md5 caculates error.");
+            logger.error("file - " + file + " md5 caculates error.");
             throw ioe;
+        } finally {
+            IOUtils.closeQuietly(fis);
         }
 
         return bufferToHex(messagedigest.digest());
