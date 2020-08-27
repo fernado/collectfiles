@@ -1,4 +1,4 @@
-package pr.iceworld.fernando.files;
+package pr.iceworld.fernando.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

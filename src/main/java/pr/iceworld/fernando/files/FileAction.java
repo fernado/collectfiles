@@ -5,6 +5,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import pr.iceworld.fernando.config.Config;
 import pr.iceworld.fernando.consts.Const;
 import pr.iceworld.fernando.utils.Md5Util;
 
