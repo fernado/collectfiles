@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
+import pr.iceworld.fernando.config.LogbackInit;
 import pr.iceworld.fernando.consts.Const;
 import pr.iceworld.fernando.files.FileAction;
 
@@ -15,10 +16,10 @@ import pr.iceworld.fernando.files.FileAction;
 @ComponentScan(basePackages = "pr.iceworld.fernando.**")
 public class AppMain {
 
-    private static final Logger logger = LoggerFactory.getLogger(AppMain.class);
     public static void main(String[] args) {
+        LogbackInit.initLogback(Const.CONFIG_PATH + "/logback.xml");
+        Logger logger = LoggerFactory.getLogger(AppMain.class);
         logger.debug("Load logback.xml from " + Const.CONFIG_PATH + "/logback.xml");
-        System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, Const.CONFIG_PATH + "/logback.xml");
 
         AnnotationConfigApplicationContext applicationContext = null;
         try {
