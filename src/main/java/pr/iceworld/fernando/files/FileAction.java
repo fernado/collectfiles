@@ -1,6 +1,7 @@
 package pr.iceworld.fernando.files;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ public class FileAction {
     private Config config;
 
     public void doNormal() {
+        logger.debug("config -- " + JSONObject.toJSONString(config));
         String sourcefilesPath = config.getSourceFile();
         sourcefilesPath = Const.CONFIG_PATH + "/" + sourcefilesPath;
 
@@ -45,6 +47,7 @@ public class FileAction {
     }
 
     public void doAdvanced() {
+        logger.debug("config -- " + JSONObject.toJSONString(config));
         String sourcefilesPath = config.getSourceFile();
         sourcefilesPath = Const.CONFIG_PATH + "/" + sourcefilesPath;
 
