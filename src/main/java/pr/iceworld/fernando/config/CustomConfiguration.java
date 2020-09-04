@@ -8,6 +8,9 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import pr.iceworld.fernando.consts.Const;
 
+/**
+ * as long as one of PropertyPlaceholderConfigurer, PropertySourcesPlaceholderConfigurer is implemented is okay for loading property
+ **/ 
 @Configuration
 public class CustomConfiguration {
 
